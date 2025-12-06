@@ -151,6 +151,69 @@ public class UserServiceIntegrationTest {
     // если Fake DB не очищается автоматически
 }
 ```
+Билет 18
+Вопрос 1
+Примеры рефакторинга кода для удаления дублирования
+Рассмотрим простой пример на Java/C#, где есть дублирование кода для валидации пользователя:
+До рефакторинга (Нарушение DRY):
+java
+```
+public void processUserData(User user) {
+    if (user.getName() == null || user.getName().isEmpty()) {
+        System.out.println("Invalid name.");
+        return;
+    }
+    if (user.getEmail() == null || !user.getEmail().contains("@")) {
+        System.out.println("Invalid email.");
+        return;
+    }
+    // Основная логика обработки...
+}
+
+public void validateAndSend(User user) {
+    if (user.getName() == null || user.getName().isEmpty()) {
+        System.out.println("Invalid name.");
+        return;
+    }
+    if (user.getEmail() == null || !user.getEmail().contains("@")) {
+        System.out.println("Invalid email.");
+        return;
+    }
+    // Логика отправки...
+}
+```
+
+После рефакторинга (Соблюдение DRY, извлечение метода):
+Мы извлекаем общую логику валидации в отдельный метод isValidUser().
+java
+```
+// Новый, переиспользуемый метод
+private boolean isValidUser(User user) {
+    if (user.getName() == null || user.getName().isEmpty()) {
+        System.out.println("Invalid name.");
+        return false;
+    }
+    if (user.getEmail() == null || !user.getEmail().contains("@")) {
+        System.out.println("Invalid email.");
+        return false;
+    }
+    return true;
+}
+
+public void processUserData(User user) {
+    if (!isValidUser(user)) {
+        return;
+    }
+    // Основная логика обработки...
+}
+
+public void validateAndSend(User user) {
+    if (!isValidUser(user)) {
+        return;
+    }
+    // Логика отправки...
+}
+```
 Билет 21 
 Вопрос 3
 Пример структуры базы данныйх:
