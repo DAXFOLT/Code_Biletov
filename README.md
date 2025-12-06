@@ -214,6 +214,71 @@ public void validateAndSend(User user) {
     // Логика отправки...
 }
 ```
+Вопрос 2 
+Примеры создания форм с различными типами валидации
+Пример 1: Простая HTML5 форма с клиентской валидацией
+html
+```
+<form action="/api/register" method="POST">
+    <label for="username">Имя пользователя (от 4 до 10 симв.):</label>
+    <input type="text" id="username" name="username" required minlength="4" maxlength="10">
+    
+    <label for="email">Email:</label>
+    <!-- type="email" активирует базовую проверку формата на клиенте -->
+    <input type="email" id="email" name="email" required>
+
+    <label for="age">Возраст (18 до 99):</label>
+    <!-- type="number" с атрибутами min/max -->
+    <input type="number" id="age" name="age" min="18" max="99">
+
+    <button type="submit">Зарегистрироваться</button>
+</form>
+```
+
+Пример 2: Серверная валидация (Концепция на PHP)
+Предположим, форма из Примера 1 отправляет данные на сервер.
+php
+```
+// Файл /api/register (PHP)
+
+// Никогда не доверяем данным от клиента, проверяем ВСЁ на сервере
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username = $_POST['username'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $age = filter_input(INPUT_POST, 'age', FILTER_VALIDATE_INT); // Безопасное получение числа
+
+    $errors = [];
+
+    // 1. Валидация username
+    if (empty($username)) {
+        $errors[] = "Имя пользователя обязательно.";
+    } elseif (strlen($username) < 4 || strlen($username) > 10) {
+        $errors[] = "Имя пользователя должно быть от 4 до 10 символов.";
+    }
+
+    // 2. Валидация email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Некорректный формат email.";
+    }
+    
+    // 3. Валидация age
+    if ($age === false || $age < 18 || $age > 99) {
+        $errors[] = "Возраст должен быть от 18 до 99 лет.";
+    }
+
+    // Если ошибок нет, обрабатываем данные (сохраняем в БД)
+    if (empty($errors)) {
+        // !!! Здесь используем PDO и Prepared Statements для защиты от SQL Injection !!!
+        // insert_user_into_db($username, $email, $age); 
+        echo "Регистрация успешна!";
+    } else {
+        // Возвращаем ошибки пользователю
+        foreach ($errors as $error) {
+            echo "<p>Ошибка: $error</p>";
+        }
+    }
+}
+```
 Билет 21 
 Вопрос 3
 Пример структуры базы данныйх:
