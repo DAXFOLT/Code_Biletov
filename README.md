@@ -106,6 +106,51 @@ System.out.println(readText); // Вывод: Привет, мир!
 byte[] bytes1251 = text.getBytes("Windows-1251");
 // Здесь bytes1251 содержат байты в кодировке Windows-1251
 ```
+Вопрос 3
+
+Примеры написания интеграционных тестов для приложения
+Рассмотрим пример тестирования сервиса, который взаимодействует с базой данных. Мы используем фреймворк JUnit 5.
+Задача: Протестировать, что сервис UserService может корректно сохранить нового пользователя в базу данных и затем найти его.
+```
+java
+import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+// Пример использует H2 Database в памяти для имитации реальной БД (это Fake)
+public class UserServiceIntegrationTest {
+
+    private UserRepository userRepository;
+    private UserService userService;
+
+    @BeforeEach
+    public void setUp() {
+        // Инициализация репозитория, который подключается к тестовой БД H2
+        userRepository = new UserRepositoryInMemoryFake(); 
+        userService = new UserService(userRepository);
+    }
+
+    @Test
+    @DisplayName("Should save user and retrieve it correctly")
+    public void testSaveAndFindUser() {
+        // 1. Подготовка данных
+        String email = "test@example.com";
+        String name = "Test User";
+
+        // 2. Действие - сохраняем пользователя
+        userService.registerUser(email, name);
+
+        // 3. Проверка - ищем пользователя в базе через тот же сервис/репозиторий
+        User foundUser = userService.findUserByEmail(email);
+
+        assertNotNull(foundUser, "User should be found in the database");
+        assertEquals(email, foundUser.getEmail(), "Emails should match");
+        assertEquals(name, foundUser.getName(), "Names should match");
+    }
+    
+    // @AfterEach можно использовать для очистки данных, 
+    // если Fake DB не очищается автоматически
+}
+```
 Билет 21 
 Вопрос 3
 Пример структуры базы данныйх:
