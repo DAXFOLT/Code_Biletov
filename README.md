@@ -55,6 +55,57 @@ class Controller {
     }
 }
 ```
+Билет 17
+Вопрос 2
+Пример на С#
+```
+using System.IO;
+using System.Text;
+
+// ...
+
+string text = "Привет, мир!";
+string filePath = "example.txt";
+
+// Запись текста в файл с использованием UTF-8
+File.WriteAllText(filePath, text, Encoding.UTF8);
+
+// Чтение текста из файла с явным указанием кодировки UTF-8
+string readText = File.ReadAllText(filePath, Encoding.UTF8);
+
+Console.WriteLine(readText); // Вывод: Привет, мир!
+
+// Пример работы с другой кодировкой (Windows-1251)
+Encoding windows1251 = Encoding.GetEncoding("windows-1251");
+byte[] bytes1251 = windows1251.GetBytes(text);
+// Здесь bytes1251 содержат байты в кодировке Windows-1251
+```
+Пример на Java
+```
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
+// ...
+
+String text = "Привет, мир!";
+String filePath = "example.txt";
+
+// Запись текста в файл с использованием UTF-8
+// Files.write требует List<String>
+Files.write(Paths.get(filePath), List.of(text), StandardCharsets.UTF_8);
+
+// Чтение текста из файла с использованием UTF-8
+List<String> lines = Files.readAllLines(Paths.get(filePath), StandardCharsets.UTF_8);
+String readText = String.join("\n", lines);
+
+System.out.println(readText); // Вывод: Привет, мир!
+
+// Пример преобразования строки в байты в другой кодировке (Windows-1251)
+byte[] bytes1251 = text.getBytes("Windows-1251");
+// Здесь bytes1251 содержат байты в кодировке Windows-1251
+```
 Билет 21 
 Вопрос 3
 Пример структуры базы данныйх:
