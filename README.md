@@ -294,6 +294,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   }
 }
 ```
+Билет 19
+Вопрос 3
+Примеры настройки email отправки
+Пример на Java (с использованием Jakarta Mail API)
+Требуется добавить зависимость jakarta.mail-api и реализацию (например, angus-mail или jakarta.mail) в Maven/Gradle.
+```
+import javax.mail.*;
+import javax.mail.internet.*;
+import java.util.Properties;
+
+public class EmailSender {
+
+    public void sendMail(String recipientEmail, String subject, String body) throws MessagingException {
+        final String username = "your_smtp_username";
+        final String password = "your_smtp_password";
+        final String host = "smtp.mailgun.org";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true"); // Используем STARTTLS
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", "587");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("sender@yourapp.com"));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+        message.setSubject(subject);
+        message.setText(body);
+
+        Transport.send(message);
+        System.out.println("Email sent successfully!");
+    }
+}
+```
+
+Пример на C# (с использованием MailKit)
+Требуется установить NuGet-пакет MailKit.
+```
+using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using System.Threading.Tasks;
+
+public class MailKitEmailSender
+{
+    public static async Task SendEmailAsync(string recipientEmail, string subject, string body)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("Your App Name", "noreply@yourapp.com"));
+        message.To.Add(new MailboxAddress("", recipientEmail));
+        message.Subject = subject;
+
+        message.Body = new TextPart("plain") { Text = body };
+
+        using (var client = new SmtpClient())
+        {
+            try
+            {
+                await client.ConnectAsync("smtp.sendgrid.net", 587, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync("sendgrid_username", "sendgrid_password");
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+                Console.WriteLine("Email sent successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
+                // Здесь должна быть логика логирования или повторных попыток
+            }
+        }
+    }
+}
+```
 Билет 21 
 Вопрос 3
 Пример структуры базы данныйх:
