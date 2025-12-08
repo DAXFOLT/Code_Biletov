@@ -279,6 +279,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ```
+Вопрос 3
+Пример структурированного лога в JSON:
+```
+{
+  "timestamp": "2025-12-08T10:00:00Z",
+  "level": "ERROR",
+  "service": "user-service",
+  "transactionId": "abc-123",
+  "message": "Failed to create user",
+  "details": {
+    "userId": 456,
+    "errorType": "DatabaseException"
+  }
+}
+```
 Билет 21 
 Вопрос 3
 Пример структуры базы данныйх:
