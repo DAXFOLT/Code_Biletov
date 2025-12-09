@@ -373,6 +373,131 @@ public class MailKitEmailSender
     }
 }
 ```
+Билет 20
+Вопрос 3
+Шаг 1: Определение ViewModel (MainViewModel.cs)
+Этот класс будет содержать всю логику приложения: свойства для хранения введенных данных (сумма счета, процент чаевых) и вычисленный результат (общая сумма). Он также реализует интерфейс INotifyPropertyChanged для уведомления UI об изменениях.
+```
+// Для простоты примера, класс ViewModelBase и реализация INotifyPropertyChanged 
+// опущены, но в реальном приложении они обязательны для работы привязок.
+// Предполагаем, что у нас есть базовый класс ObservableObject
+
+public class MainViewModel : ObservableObject 
+{
+    private decimal _billAmount;
+    private int _tipPercentage = 15;
+    private decimal _totalAmount;
+
+    public decimal BillAmount
+    {
+        get => _billAmount;
+        set
+        {
+            if (SetProperty(ref _billAmount, value))
+            {
+                CalculateTotal();
+            }
+        }
+    }
+
+    public int TipPercentage
+    {
+        get => _tipPercentage;
+        set
+        {
+            if (SetProperty(ref _tipPercentage, value))
+            {
+                CalculateTotal();
+            }
+        }
+    }
+
+    public decimal TotalAmount
+    {
+        get => _totalAmount;
+        // Только чтение из View, обновление происходит внутри ViewModel
+        set => SetProperty(ref _totalAmount, value); 
+    }
+
+    private void CalculateTotal()
+    {
+        if (BillAmount > 0)
+        {
+            decimal tip = BillAmount * TipPercentage / 100;
+            TotalAmount = BillAmount + tip;
+        }
+    }
+}
+```
+
+Шаг 2: Разработка Представления (MainWindow.xaml)
+Здесь мы создаем пользовательский интерфейс с использованием XAML и привязываем элементы UI к свойствам нашей ViewModel.
+```
+<!-- MainWindow.xaml -->
+<Window x:Class="WpfTipCalculator.MainWindow"
+        xmlns="schemas.microsoft.com"
+        xmlns:x="schemas.microsoft.com"
+        xmlns:local="clr-namespace:WpfTipCalculator"
+        Title="Калькулятор чаевых" Height="250" Width="350">
+    
+    <!-- Устанавливаем DataContext окна на нашу ViewModel -->
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Сумма счета -->
+        <Label Content="Сумма счета:" Grid.Row="0" Grid.Column="0"/>
+        <TextBox Grid.Row="0" Grid.Column="1"
+                 Text="{Binding BillAmount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <!-- Процент чаевых -->
+        <Label Content="Процент чаевых:" Grid.Row="1" Grid.Column="0"/>
+        <TextBox Grid.Row="1" Grid.Column="1"
+                 Text="{Binding TipPercentage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        
+        <!-- Линия-разделитель -->
+        <Separator Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,10"/>
+
+        <!-- Общая сумма -->
+        <Label Content="ИТОГО:" Grid.Row="3" Grid.Column="0" FontWeight="Bold"/>
+        <!-- Привязка TotalAmount (Mode по умолчанию OneWay - только отображение) -->
+        <TextBlock Grid.Row="3" Grid.Column="1" FontWeight="Bold" FontSize="16"
+                   Text="{Binding TotalAmount, StringFormat=C}"/> 
+        
+    </Grid>
+</Window>
+```
+
+Шаг 3: Настройка запуска (Code-behind)
+Файл MainWindow.xaml.cs остается чистым, так как вся логика находится в ViewModel.
+```
+// MainWindow.xaml.cs
+using System.Windows;
+
+namespace WpfTipCalculator
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            // DataContext уже установлен в XAML, код здесь не требуется.
+        }
+    }
+}
+```
 Билет 21 
 Вопрос 3
 Пример структуры базы данныйх:
