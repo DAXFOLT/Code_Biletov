@@ -1,7 +1,195 @@
-# Code_Biletov
-Билет 16
-Вопрос 3
-1. index.php (Точка входа):
+# Код билетов
+Содержание
+[3 билет] (##3-билет)
+
+
+
+
+
+
+
+
+
+
+
+## 3 билет
+### 1 вопрос
+Слой представления (Presentation Layer)
+Пример реализации (ASP.NET Core MVC):
+#### 1. Слой представления (Presentation Layer)
+Что делает: Взаимодействие с пользователем
+
+```
+// Пример: Форма заказа в мобильном приложении
+public class CoffeeOrderForm
+{
+    public void ShowMenu()
+    {
+        Console.WriteLine("=== МЕНЮ ===");
+        Console.WriteLine("1. Американо - 150 руб.");
+        Console.WriteLine("2. Капучино - 200 руб.");
+        Console.WriteLine("3. Латте - 220 руб.");
+    }
+    
+    public OrderRequest GetOrder()
+    {
+        Console.Write("Выберите напиток (1-3): ");
+        var drinkId = int.Parse(Console.ReadLine());
+        
+        Console.Write("Укажите количество: ");
+        var quantity = int.Parse(Console.ReadLine());
+        
+        Console.Write("Ваше имя: ");
+        var customerName = Console.ReadLine();
+        
+        return new OrderRequest
+        {
+            DrinkId = drinkId,
+            Quantity = quantity,
+            CustomerName = customerName
+        };
+    }
+    
+    public void ShowReceipt(Order order)
+    {
+        Console.WriteLine("\n=== ВАШ ЧЕК ===");
+        Console.WriteLine($"Номер заказа: {order.Id}");
+        Console.WriteLine($"Напиток: {order.DrinkName}");
+        Console.WriteLine($"Количество: {order.Quantity}");
+        Console.WriteLine($"Итого: {order.TotalPrice} руб.");
+        Console.WriteLine($"Статус: {order.Status}");
+    }
+}
+```
+#### 2. Слой бизнес-логики (Business Logic Layer)
+Что делает: Обработка заказа по правилам кофейни
+```
+// Простой сервис заказов
+public class CoffeeOrderService
+{
+    public Order ProcessOrder(OrderRequest request)
+    {
+        // 1. Валидация
+        if (request.Quantity <= 0)
+            throw new Exception("Количество должно быть больше 0!");
+        
+        if (string.IsNullOrEmpty(request.CustomerName))
+            throw new Exception("Укажите ваше имя!");
+        
+        // 2. Рассчитываем цену
+        var price = GetPrice(request.DrinkId);
+        var totalPrice = price * request.Quantity;
+        
+        // 3. Применяем скидку для постоянных клиентов
+        if (IsRegularCustomer(request.CustomerName))
+        {
+            totalPrice *= 0.9m; // 10% скидка
+        }
+        
+        // 4. Создаем заказ
+        var order = new Order
+        {
+            Id = GenerateOrderId(),
+            DrinkId = request.DrinkId,
+            DrinkName = GetDrinkName(request.DrinkId),
+            Quantity = request.Quantity,
+            CustomerName = request.CustomerName,
+            TotalPrice = totalPrice,
+            Status = "Принят",
+            CreatedDate = DateTime.Now
+        };
+        
+        // 5. Проверяем ингредиенты на складе
+        CheckIngredients(request.DrinkId, request.Quantity);
+        
+        return order;
+    }
+    
+    private decimal GetPrice(int drinkId)
+    {
+        return drinkId switch
+        {
+            1 => 150m,  // Американо
+            2 => 200m,  // Капучино
+            3 => 220m,  // Латте
+            _ => throw new Exception("Неизвестный напиток")
+        };
+    }
+    
+    private bool IsRegularCustomer(string name)
+    {
+        // Простая проверка - если имя в списке постоянных клиентов
+        var regulars = new List<string> { "Анна", "Иван", "Мария" };
+        return regulars.Contains(name);
+    }
+    
+    private void CheckIngredients(int drinkId, int quantity)
+    {
+        // Проверяем, хватит ли кофе, молока и т.д.
+        // Если нет - бросаем исключение
+    }
+}
+```
+#### 3. Слой данных (Data Access Layer)
+Что делает: Сохранение и загрузка данных
+```
+// Простой репозиторий для работы с заказами
+public class OrderRepository
+{
+    private List<Order> _orders = new List<Order>();
+    private int _nextId = 1;
+    
+    // Сохранить заказ
+    public void SaveOrder(Order order)
+    {
+        order.Id = _nextId++;
+        _orders.Add(order);
+        
+        Console.WriteLine($"Заказ #{order.Id} сохранен в базе");
+    }
+    
+    // Найти заказ по номеру
+    public Order FindOrder(int orderId)
+    {
+        return _orders.FirstOrDefault(o => o.Id == orderId);
+    }
+    
+    // Получить все заказы клиента
+    public List<Order> GetCustomerOrders(string customerName)
+    {
+        return _orders
+            .Where(o => o.CustomerName == customerName)
+            .ToList();
+    }
+    
+    // Обновить статус заказа
+    public void UpdateOrderStatus(int orderId, string newStatus)
+    {
+        var order = FindOrder(orderId);
+        if (order != null)
+        {
+            order.Status = newStatus;
+            Console.WriteLine($"Статус заказа #{orderId} изменен на '{newStatus}'");
+        }
+    }
+}
+
+// Модель данных
+public class Order
+{
+    public int Id { get; set; }
+    public int DrinkId { get; set; }
+    public string DrinkName { get; set; }
+    public int Quantity { get; set; }
+    public string CustomerName { get; set; }
+    public decimal TotalPrice { get; set; }
+    public string Status { get; set; }
+    public DateTime CreatedDate { get; set; }
+}
+```
+## Билет 16
+### Вопрос 3
+#### 1. index.php (Точка входа):
 ```
 // index.php
 require 'Router.php';
@@ -19,7 +207,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 // Диспетчеризация запроса
 $router->dispatch($requestMethod, $requestUri);
 ```
-2. Router.php (Маршрутизатор):
+#### 2. Router.php (Маршрутизатор):
 ```
 // Router.php
 class Router {
@@ -46,7 +234,7 @@ class Router {
 }
 ```
 
-3. Controller.php (Контроллер):
+#### 3. Controller.php (Контроллер):
 ```
 // Controller.php
 class Controller {
@@ -55,9 +243,9 @@ class Controller {
     }
 }
 ```
-Билет 17
-Вопрос 2
-Пример на С#
+## Билет 17
+### Вопрос 2
+#### Пример на С#
 ```
 using System.IO;
 using System.Text;
@@ -80,35 +268,9 @@ Encoding windows1251 = Encoding.GetEncoding("windows-1251");
 byte[] bytes1251 = windows1251.GetBytes(text);
 // Здесь bytes1251 содержат байты в кодировке Windows-1251
 ```
-Пример на Java
-```
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
+### Вопрос 3
 
-// ...
-
-String text = "Привет, мир!";
-String filePath = "example.txt";
-
-// Запись текста в файл с использованием UTF-8
-// Files.write требует List<String>
-Files.write(Paths.get(filePath), List.of(text), StandardCharsets.UTF_8);
-
-// Чтение текста из файла с использованием UTF-8
-List<String> lines = Files.readAllLines(Paths.get(filePath), StandardCharsets.UTF_8);
-String readText = String.join("\n", lines);
-
-System.out.println(readText); // Вывод: Привет, мир!
-
-// Пример преобразования строки в байты в другой кодировке (Windows-1251)
-byte[] bytes1251 = text.getBytes("Windows-1251");
-// Здесь bytes1251 содержат байты в кодировке Windows-1251
-```
-Вопрос 3
-
-Примеры написания интеграционных тестов для приложения
+#### Примеры написания интеграционных тестов для приложения
 Рассмотрим пример тестирования сервиса, который взаимодействует с базой данных. Мы используем фреймворк JUnit 5.
 Задача: Протестировать, что сервис UserService может корректно сохранить нового пользователя в базу данных и затем найти его.
 ```
@@ -151,9 +313,9 @@ public class UserServiceIntegrationTest {
     // если Fake DB не очищается автоматически
 }
 ```
-Билет 18
-Вопрос 1
-Примеры рефакторинга кода для удаления дублирования
+## Билет 18
+### Вопрос 1
+#### Примеры рефакторинга кода для удаления дублирования
 Рассмотрим простой пример на Java/C#, где есть дублирование кода для валидации пользователя:
 До рефакторинга (Нарушение DRY):
 java
@@ -214,7 +376,7 @@ public void validateAndSend(User user) {
     // Логика отправки...
 }
 ```
-Вопрос 2 
+### Вопрос 2 
 Примеры создания форм с различными типами валидации
 Пример 1: Простая HTML5 форма с клиентской валидацией
 html
@@ -235,7 +397,7 @@ html
 </form>
 ```
 
-Пример 2: Серверная валидация (Концепция на PHP)
+#### Пример 2: Серверная валидация (Концепция на PHP)
 Предположим, форма из Примера 1 отправляет данные на сервер.
 php
 ```
@@ -279,7 +441,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ```
-Вопрос 3
+### Вопрос 3
 Пример структурированного лога в JSON:
 ```
 {
@@ -294,10 +456,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   }
 }
 ```
-Билет 19
-Вопрос 3
+## Билет 19
+### Вопрос 3
 Примеры настройки email отправки
-Пример на Java (с использованием Jakarta Mail API)
+#### Пример на Java (с использованием Jakarta Mail API)
 Требуется добавить зависимость jakarta.mail-api и реализацию (например, angus-mail или jakarta.mail) в Maven/Gradle.
 ```
 import javax.mail.*;
@@ -335,7 +497,7 @@ public class EmailSender {
 }
 ```
 
-Пример на C# (с использованием MailKit)
+#### Пример на C# (с использованием MailKit)
 Требуется установить NuGet-пакет MailKit.
 ```
 using MimeKit;
@@ -373,9 +535,9 @@ public class MailKitEmailSender
     }
 }
 ```
-Билет 20
-Вопрос 3
-Шаг 1: Определение ViewModel (MainViewModel.cs)
+## Билет 20
+### Вопрос 3
+#### Шаг 1: Определение ViewModel (MainViewModel.cs)
 Этот класс будет содержать всю логику приложения: свойства для хранения введенных данных (сумма счета, процент чаевых) и вычисленный результат (общая сумма). Он также реализует интерфейс INotifyPropertyChanged для уведомления UI об изменениях.
 ```
 // Для простоты примера, класс ViewModelBase и реализация INotifyPropertyChanged 
@@ -430,7 +592,7 @@ public class MainViewModel : ObservableObject
 }
 ```
 
-Шаг 2: Разработка Представления (MainWindow.xaml)
+#### Шаг 2: Разработка Представления (MainWindow.xaml)
 Здесь мы создаем пользовательский интерфейс с использованием XAML и привязываем элементы UI к свойствам нашей ViewModel.
 ```
 <!-- MainWindow.xaml -->
@@ -480,7 +642,7 @@ public class MainViewModel : ObservableObject
 </Window>
 ```
 
-Шаг 3: Настройка запуска (Code-behind)
+#### Шаг 3: Настройка запуска (Code-behind)
 Файл MainWindow.xaml.cs остается чистым, так как вся логика находится в ViewModel.
 ```
 // MainWindow.xaml.cs
@@ -498,9 +660,9 @@ namespace WpfTipCalculator
     }
 }
 ```
-Билет 21 
-Вопрос 3
-Пример структуры базы данныйх:
+## Билет 21 
+### Вопрос 3
+Пример структуры базы данных:
 ```
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
