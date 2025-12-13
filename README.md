@@ -478,8 +478,6 @@ git branch -d feature/add-like-button
 ```markdown
 ## Пример 1: Race Condition
 
-Когда несколько потоков одновременно изменяют общую переменную без синхронизации, возникает **условие гонки (race condition)**.
-
 ```csharp
 using System;
 using System.Threading;
