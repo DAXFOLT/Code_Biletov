@@ -41,7 +41,236 @@
  [21 билет](#билет-21)
  - [3 вопрос](#вопрос-3-5)
 
+## 1 билет
+### 2 вопрос
+#### Пример Инкапусляция на C#
+```
+using System;
 
+// Пример: "Кофе-машина"
+public class CoffeeMachine
+{
+    // Внутр. данные, скрыты от пользователя
+    private int _WaterAmount = 1000;
+    private int _CoffeeBeans = 500;
+    private bool _isOn = false;
+
+    // Публичный интерфейс - только то, что нужно пользователю
+
+    public void TurnOn()
+    {
+        _isOn = true;
+        Console.WriteLine("Кофе-машина включена");
+    }
+
+    public void MakeCoffee()
+    {
+        if (!_isOn)
+        {
+            Console.WriteLine("Сначала включите!");
+            return;
+        }
+        if (_WaterAmount < 100)
+        {
+            Console.WriteLine("Недостаточно воды");
+            return;
+        }
+        _WaterAmount -= 100;
+        _CoffeeBeans -= 20;
+        Console.WriteLine("Кофе готов!");
+    }
+
+    public void ShowStatus()
+    {
+        Console.WriteLine($"Вода: {_WaterAmount} мл.");
+    }
+}
+
+// Использование
+class Program
+{
+    static void Main()
+    {
+        CoffeeMachine machine = new CoffeeMachine();
+        machine.TurnOn();
+        machine.MakeCoffee();
+        machine.ShowStatus();
+    }
+}
+```
+#### Пример Наследование на С#
+```
+// Базовый класс
+public class Vehicle
+{
+    public string Brand { get; set; }
+    public int MaxSpeed { get; set; }
+    public void StartEngine()
+    {
+        Console.WriteLine($"Brand: {Brand}, MaxSpeed: {MaxSpeed}");
+    }
+}
+
+// Наследник 1
+public class Car : Vehicle
+{
+    public int DoorsCount { get; set; }
+    public void Honk()
+    {
+        Console.WriteLine("Бип");
+    }
+}
+
+// Использование
+class Program
+{
+    static void Main()
+    {
+        Car myCar = new Car();
+        myCar.Brand = "Toyota";
+        myCar.MaxSpeed = 180;
+        myCar.DoorsCount = 4;
+        myCar.StartEngine(); // Выводит: Brand: Toyota, MaxSpeed: 180
+        myCar.Honk(); // Выводит: Бип
+    }
+}
+```
+
+#### Пример Полиморфизм на C#
+```
+using System;
+
+// Базовый класс для форм
+public abstract class BoxingForm
+{
+    public string Name { get; set; }
+
+    // Конструктор по умолчанию
+    public BoxingForm()
+    {
+        Name = "no-boxing instance";
+    }
+
+    // Абстрактный метод, который должен быть реализован в производных классах
+    public abstract void Battle();
+
+    // Виртуальный метод, который можно переопределить
+    public virtual void Gracese()
+    {
+        Console.WriteLine($"I'm {Name}!");
+    }
+}
+
+// Производный класс RoundForm
+public class RoundForm : BoxingForm
+{
+    public override void Battle()
+    {
+        Console.WriteLine($"{Name} is doing 3 days of training!");
+    }
+}
+
+// Производный класс SquareForm
+public class SquareForm : BoxingForm
+{
+    public override void Battle()
+    {
+        Console.WriteLine($"{Name} is doing hyper training!");
+    }
+}
+
+// Класс программы
+class Program
+{
+    static void Main()
+    {
+        // Создаем массив объектов базового типа
+        BoxingForm[] forms =
+        {
+            new RoundForm { Name = "Борьба" },
+            new SquareForm { Name = "Квадратная фигура" }
+        };
+
+        // Перебираем все формы и вызываем их методы
+        foreach (var form in forms)
+        {
+            form.Gracese();   // Вызываем виртуальный метод
+            form.Battle();    // Вызываем абстрактный метод
+            Console.WriteLine(); // Пустая строка для разделения вывода
+        }
+    }
+}
+```
+
+#### Пример Абстракция на C#
+```
+using System;
+
+// Абстрактный базовый класс для пульта управления
+public abstract class RemoteControl
+{
+    // Свойство для хранения бренда
+    public string Brand { get; set; }
+
+    // Конструктор по умолчанию
+    public RemoteControl()
+    {
+        Brand = "no-brand";
+    }
+
+    // Абстрактные методы, которые должны быть реализованы в производных классах
+    public abstract void TurnOn();
+    public abstract void TurnOff();
+    public abstract void VolumeUp();
+
+    // Виртуальный метод, который можно переопределить
+    public virtual void ShowBrand()
+    {
+        Console.WriteLine($"Текущий бренд: {Brand}");
+    }
+}
+
+// Производный класс для телевизионного пульта
+public class TVRemote : RemoteControl
+{
+    public override void TurnOn()
+    {
+        Console.WriteLine("Телевизор включен");
+    }
+
+    public override void TurnOff()
+    {
+        Console.WriteLine("Телевизор выключен");
+    }
+
+    public override void VolumeUp()
+    {
+        Console.WriteLine("Громкость увеличена");
+    }
+
+    // Переопределяем виртуальный метод
+    public override void ShowBrand()
+    {
+        Console.WriteLine($"Текущий бренд телевизора: {Brand}");
+    }
+}
+
+// Класс программы
+class Program
+{
+    static void Main()
+    {
+        // Использование
+        RemoteControl tvRemote = new TVRemote { Brand = "Samsung" };
+
+        // Использование объектов
+        tvRemote.ShowBrand(); // Вызов виртуального метода
+        tvRemote.TurnOn();    // Вызов абстрактного метода
+        tvRemote.VolumeUp();  // Вызов абстрактного метода
+        Console.WriteLine();  // Пустая строка для разделения вывода
+    }
+}
+```
 ## 3 билет
 ### 3 билет 1 вопрос
 Слой представления (Presentation Layer)
