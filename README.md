@@ -448,6 +448,135 @@ git branch -d feature/add-like-button
 - **O(n)** — объём используемой памяти растёт линейно с размером входных данных (например, создание нового массива или неоптимизированная рекурсия).
 - **Рекурсивные алгоритмы** часто потребляют **O(n)** памяти из-за стека вызовов (глубина рекурсии = n).
 
+### 4 билет 3 вопрос
+```markdown
+## Пример 1: Race Condition
+
+Когда несколько потоков одновременно изменяют общую переменную без синхронизации, возникает **условие гонки (race condition)**.
+
+```csharp
+using System;
+using System.Threading;
+
+class Program
+{
+    private static int counter = 0;
+    private static readonly object lockObj = new object();
+
+    static void Main()
+    {
+        Thread t1 = new Thread(IncrementCounter);
+        Thread t2 = new Thread(IncrementCounter);
+
+        t1.Start();
+        t2.Start();
+
+        t1.Join();
+        t2.Join();
+
+        Console.WriteLine($"Ожидаем: 200000, Получили: {counter}");
+    }
+
+    static void IncrementCounter()
+    {
+        for (int i = 0; i < 100000; i++)
+        {
+            // Без синхронизации — race condition!
+            counter++; // НЕАТОМАРНАЯ операция: прочитать → увеличить → записать
+        }
+    }
+}
+```
+
+**Результат**: часто выводит значение **меньше 200000** (например, `165320`), потому что операции чтения/записи пересекаются между потоками.
+
+✅ **Решение — использовать `lock`**:
+
+```csharp
+static void IncrementCounter()
+{
+    for (int i = 0; i < 100000; i++)
+    {
+        lock (lockObj)
+        {
+            counter++;
+        }
+    }
+}
+```
+
+Теперь операция атомарна относительно блокировки → результат всегда будет `200000`.
+
+---
+
+### Пример 2: Deadlock
+
+**Взаимоблокировка (deadlock)** возникает, когда два или более потока удерживают ресурсы и ждут высвобождения других.
+
+```csharp
+using System;
+using System.Threading;
+
+class DeadlockExample
+{
+    private static readonly object lockA = new object();
+    private static readonly object lockB = new object();
+
+    static void Main()
+    {
+        Thread t1 = new Thread(() => MethodA());
+        Thread t2 = new Thread(() => MethodB());
+
+        t1.Start();
+        t2.Start();
+
+        t1.Join();
+        t2.Join();
+    }
+
+    static void MethodA()
+    {
+        lock (lockA)
+        {
+            Console.WriteLine("MethodA: захватил lockA");
+            Thread.Sleep(100); // даём время MethodB захватить lockB
+            lock (lockB)
+            {
+                Console.WriteLine("MethodA: захватил lockB");
+            }
+        }
+    }
+
+    static void MethodB()
+    {
+        lock (lockB)
+        {
+            Console.WriteLine("MethodB: захватил lockB");
+            Thread.Sleep(100);
+            lock (lockA)
+            {
+                Console.WriteLine("MethodB: захватил lockA");
+            }
+        }
+    }
+}
+```
+
+#### Что происходит:
+
+- `t1` захватывает `lockA`, затем засыпает.
+- `t2` захватывает `lockB`, затем засыпает.
+- `t1` пытается захватить `lockB` → **ожидает**.
+- `t2` пытается захватить `lockA` → **ожидает**.
+- ⚠️ **Deadlock!** Программа зависает навсегда.
+
+✅ **Способы избежать deadlock**:
+
+- **Всегда захватывать блокировки в одном и том же порядке** (например, сначала `lockA`, потом `lockB` — во всех методах).
+- Использовать `Monitor.TryEnter(lock, timeout)` с тайм-аутом, чтобы избежать бесконечного ожидания.
+- Минимизировать использование вложенных блокировок.
+- Рассмотреть альтернативы: `SemaphoreSlim`, `lock-free` структуры, `async/await` вместо блокирующих вызовов.
+
 
 ## Билет 16
 ### Вопрос 3
