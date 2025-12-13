@@ -1,5 +1,12 @@
 # Код билетов
 ## Содержание:
+[1 билет](1-билет)
+   - [2 вопрос](#2-вопрос)
+        - [Пример Инкапусляция на C#](#пример-инкапусляция-на-c)
+        - [Пример Наследование на С#](#пример-наследование-на-с)
+        - [Пример Полиморфизм на C#](#пример-полиморфизм-на-c)
+        - [Пример Абстракция на C#](#пример-абстракция-на-c)
+
 [3 билет](#3-билет)
    - [1 вопрос](#3-билет-1-вопрос)
         - [Слой представления](#1-слой-представления-presentation-layer)
@@ -271,6 +278,431 @@ class Program
     }
 }
 ```
+## 2 билет
+### 2 билет 1 вопрос
+#### Singlton (одиночка, _instance)
+```
+using System;
+
+// Публичный статический класс Database
+public static class Database
+{
+    // Приватное статическое поле для хранения единственного экземпляра
+    private static Database _instance;
+
+    // Приватный конструктор, чтобы предотвратить создание экземпляров извне
+    private Database()
+    {
+        // Инициализация базы данных может происходить здесь.
+        Console.WriteLine("База данных инициализирована.");
+    }
+
+    // Публичное статическое свойство для получения экземпляра
+    public static Database Instance
+    {
+        get
+        {
+            // Если экземпляр еще не создан, создаем его
+            if (_instance == null)
+            {
+                _instance = new Database();
+            }
+            // Возвращаем существующий или только что созданный экземпляр
+            return _instance;
+        }
+    }
+
+    // Пример метода, который можно вызвать через экземпляр
+    public void DoSomething()
+    {
+        Console.WriteLine("Выполняется какое-то действие с базой данных.");
+    }
+}
+
+// Пример использования
+class Program
+{
+    static void Main()
+    {
+        // Получаем единственный экземпляр базы данных
+        var db = Database.Instance;
+        // Вызываем метод
+        db.DoSomething();
+
+        // Попробуем получить еще один экземпляр
+        var db2 = Database.Instance;
+        // Сравним ссылки: они должны быть одинаковыми
+        Console.WriteLine($"db и db2 — это один и тот же объект? {ReferenceEquals(db, db2)}");
+    }
+}
+```
+
+#### Factory Method (Фабричный, CreateProduct)
+```
+using System;
+
+// Абстрактный продукт
+abstract class Document
+{
+    // Здесь могут быть общие свойства и методы для всех документов
+    public abstract void Open();
+    public abstract void Save();
+}
+
+// Конкретный продукт 1
+class WordDoc : Document
+{
+    public override void Open()
+    {
+        Console.WriteLine("Открывается документ Word.");
+    }
+
+    public override void Save()
+    {
+        Console.WriteLine("Документ Word сохранен.");
+    }
+}
+
+// Конкретный продукт 2
+class PdfDoc : Document
+{
+    public override void Open()
+    {
+        Console.WriteLine("Открывается документ PDF.");
+    }
+
+    public override void Save()
+    {
+        Console.WriteLine("Документ PDF сохранен.");
+    }
+}
+
+// Абстрактный создатель (Creator)
+abstract class Creator
+{
+    // Фабричный метод: возвращает абстрактный продукт
+    public abstract Document CreateDocument();
+}
+
+// Конкретный создатель 1
+class WordCreator : Creator
+{
+    public override Document CreateDocument()
+    {
+        return new WordDoc(); // Создает конкретный продукт WordDoc
+    }
+}
+
+// Конкретный создатель 2
+class PdfCreator : Creator
+{
+    public override Document CreateDocument()
+    {
+        return new PdfDoc(); // Создает конкретный продукт PdfDoc
+    }
+}
+
+// Пример использования
+class Program
+{
+    static void Main()
+    {
+        // Создаем фабрику для Word-документов
+        Creator wordCreator = new WordCreator();
+        Document wordDoc = wordCreator.CreateDocument();
+        wordDoc.Open();
+        wordDoc.Save();
+
+        Console.WriteLine();
+
+        // Создаем фабрику для PDF-документов
+        Creator pdfCreator = new PdfCreator();
+        Document pdfDoc = pdfCreator.CreateDocument();
+        pdfDoc.Open();
+        pdfDoc.Save();
+    }
+}
+```
+#### Abstract Factory
+```
+using System;
+
+// Абстрактные продукты (интерфейсы)
+interface IButton
+{
+    void Render();
+}
+
+interface ITextBox
+{
+    void Render();
+}
+
+// Конкретные продукты для Windows
+class WinButton : IButton
+{
+    public void Render()
+    {
+        Console.WriteLine("Рендеринг кнопки Windows.");
+    }
+}
+
+class WinTextBox : ITextBox
+{
+    public void Render()
+    {
+        Console.WriteLine("Рендеринг текстового поля Windows.");
+    }
+}
+
+// Конкретные продукты для Mac
+class MacButton : IButton
+{
+    public void Render()
+    {
+        Console.WriteLine("Рендеринг кнопки Mac.");
+    }
+}
+
+class MacTextBox : ITextBox
+{
+    public void Render()
+    {
+        Console.WriteLine("Рендеринг текстового поля Mac.");
+    }
+}
+
+// Абстрактная фабрика
+interface IUIFactory
+{
+    IButton CreateButton();
+    ITextBox CreateTextBox();
+}
+
+// Конкретная фабрика для Windows
+class WinFactory : IUIFactory
+{
+    public IButton CreateButton()
+    {
+        return new WinButton();
+    }
+
+    public ITextBox CreateTextBox()
+    {
+        return new WinTextBox();
+    }
+}
+
+// Конкретная фабрика для Mac
+class MacFactory : IUIFactory
+{
+    public IButton CreateButton()
+    {
+        return new MacButton();
+    }
+
+    public ITextBox CreateTextBox()
+    {
+        return new MacTextBox();
+    }
+}
+
+// Пример использования
+class Program
+{
+    static void Main()
+    {
+        // Создаем фабрику для Windows
+        IUIFactory winFactory = new WinFactory();
+
+        // Используем фабрику для создания семейства продуктов
+        IButton winButton = winFactory.CreateButton();
+        ITextBox winTextBox = winFactory.CreateTextBox();
+
+        winButton.Render();  // Вывод: Рендеринг кнопки Windows.
+        winTextBox.Render(); // Вывод: Рендеринг текстового поля Windows.
+
+        Console.WriteLine();
+
+        // Создаем фабрику для Mac
+        IUIFactory macFactory = new MacFactory();
+
+        // Используем фабрику для создания другого семейства продуктов
+        IButton macButton = macFactory.CreateButton();
+        ITextBox macTextBox = macFactory.CreateTextBox();
+
+        macButton.Render();  // Вывод: Рендеринг кнопки Mac.
+        macTextBox.Render(); // Вывод: Рендеринг текстового поля Mac.
+    }
+}
+```
+
+### 2 билет 3 вопрос
+#### Иерархия исключений
+```
+using System;
+
+// Иерархия исключений в .NET (упрощенная версия)
+//
+// System.Object
+//     |
+//     +-- System.Exception (Базовый класс для всех исключений)
+//             |
+//             +-- System.SystemException (Исключения, генерируемые системой)
+//             |       |
+//             |       +-- System.DivideByZeroException (Попытка деления на ноль)
+//             |       +-- System.NullReferenceException (Попытка доступа к члену объекта, равного null)
+//             |       +-- System.ArgumentOutOfRangeException (Аргумент выходит за допустимый диапазон)
+//             |       +-- System.IndexOutOfRangeException (Индекс выходит за границы массива или коллекции)
+//             |       +-- System.InvalidOperationException (Недопустимая операция в текущем состоянии)
+//             |       +-- System.Reflection.TargetInvocationException (Ошибка при вызове метода через рефлексию)
+//             |       +-- System.FormatException (Строка не имеет правильного формата)
+//             |
+//             +-- System.ApplicationException (Исключения, генерируемые приложением)
+//                     |
+//                     +-- (Ваши собственные пользовательские исключения)
+
+// Пример использования: создание и выброс пользовательского исключения
+public class MyCustomException : ApplicationException
+{
+    public MyCustomException(string message) : base(message) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            // Пример, который может вызвать DivideByZeroException
+            int a = 10;
+            int b = 0;
+            int result = a / b; // Это вызовет исключение
+
+            // Пример, который может вызвать NullReferenceException
+            string str = null;
+            int length = str.Length; // Это вызовет исключение
+        }
+        catch (DivideByZeroException ex)
+        {
+            Console.WriteLine($"Обработка деления на ноль: {ex.Message}");
+        }
+        catch (NullReferenceException ex)
+        {
+            Console.WriteLine($"Обработка обращения к null: {ex.Message}");
+        }
+        catch (Exception ex) // Общий обработчик для всех остальных исключений
+        {
+            Console.WriteLine($"Неизвестное исключение: {ex.Message}");
+        }
+        finally
+        {
+            Console.WriteLine("Блок finally выполняется всегда.");
+        }
+    }
+}
+```
+#### Блок try catch-finally
+```
+using System;
+
+// Пользовательское исключение для отрицательного возраста
+public class NegativeAgeException : Exception
+{
+    // Конструктор, принимающий сообщение об ошибке
+    public NegativeAgeException(string message) : base(message) { }
+}
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            Console.WriteLine("Введите первое число (a): ");
+            int a = int.Parse(Console.ReadLine());
+
+            Console.WriteLine("Введите второе число (b): ");
+            int b = int.Parse(Console.ReadLine());
+
+            // Попытка деления. Может вызвать DivideByZeroException.
+            int result = a / b;
+            Console.WriteLine($"Результат деления: {result}");
+        }
+        catch (DivideByZeroException ex)
+        {
+            // Обработка конкретного исключения деления на ноль
+            Console.WriteLine("Ошибка: Нельзя делить на ноль!");
+            Console.WriteLine($"Детали: {ex.Message}");
+        }
+        catch (FormatException ex)
+        {
+            // Обработка исключения формата (если введено не число)
+            Console.WriteLine("Ошибка: Введено некорректное значение. Пожалуйста, введите целое число.");
+            Console.WriteLine($"Детали: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            // Общий обработчик для всех остальных исключений
+            Console.WriteLine($"Неизвестная ошибка: {ex.Message}");
+        }
+        finally
+        {
+            // Блок finally выполняется всегда, независимо от того, было ли исключение или нет.
+            // Используется для освобождения ресурсов (например, закрытия файлов, соединений).
+            Console.WriteLine("Блок finally выполнен.");
+        }
+
+        // Пример использования пользовательского исключения
+        try
+        {
+            Person person = new Person();
+            Console.Write("Введите возраст: ");
+            int age = int.Parse(Console.ReadLine());
+            person.SetAge(age); // Этот метод может выбросить NegativeAgeException
+        }
+        catch (NegativeAgeException ex)
+        {
+            Console.WriteLine($"Пользовательское исключение: {ex.Message}");
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("Ошибка: Введите корректное число для возраста.");
+        }
+    }
+}
+
+// Класс Person, который использует пользовательское исключение
+class Person
+{
+    private int _age;
+
+    public int Age
+    {
+        get { return _age; }
+        set
+        {
+            if (value < 0)
+            {
+                // Выбрасываем пользовательское исключение, если возраст отрицательный
+                throw new NegativeAgeException("Возраст не может быть отрицательным!");
+            }
+            _age = value;
+        }
+    }
+
+    // Метод-сеттер, который также может выбрасывать исключение
+    public void SetAge(int age)
+    {
+        if (age < 0)
+        {
+            throw new NegativeAgeException("Возраст не может быть отрицательным!");
+        }
+        this._age = age;
+    }
+}
+```
+
 ## 3 билет
 ### 3 билет 1 вопрос
 Слой представления (Presentation Layer)
@@ -450,8 +882,6 @@ public class Order
 ### 3 билет 2 вопрос
 #### Основные команды Git
 ```markdown
-### 2 вопрос
-
 ## Работа с изменениями
 
 ### Добавление файлов
