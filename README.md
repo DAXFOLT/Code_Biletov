@@ -1269,6 +1269,167 @@ class DeadlockExample
 - Минимизировать использование вложенных блокировок.
 - Рассмотреть альтернативы: `SemaphoreSlim`, `lock-free` структуры, `async/await` вместо блокирующих вызовов.
 
+## Билет 8
+### Билет 8 вопрос 2
+Примеры форматов:
+Текст — просто строка.
+CSV — таблица: имя,возраст\nАлиса,25.
+JSON — структурированные данные: {"name": "Алиса", "age": 25}.
+XML — разметка: <user><name>Алиса</name></user>.
+
+Пример на Java (чтение JSON):
+// Используем библиотеку Jackson
+ObjectMapper mapper = new ObjectMapper();
+User user = mapper.readValue(new File("user.json"), User.class);
+
+### Вопрос 3
+Интеграция внешнего API:
+
+Изучить документацию (эндпоинты, формат запросов).
+Получить API-ключ (если требуется).
+Отправить HTTPS-запрос (например, с помощью HttpClient в C# или fetch в JS).
+Обработать ответ (обычно в JSON).
+Пример: интеграция Twilio для SMS (на Java):
+Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+Message message = Message.creator(
+    new PhoneNumber("+1234567890"),
+    new PhoneNumber("+1987654321"),
+    "Привет из вашего приложения!"
+).create();
+
+## Билет 9
+### БИЛЕТ 9 ВОПРОС 1
+Основные техники:
+
+Извлечение метода: вынести кусок кода в отдельную функцию с понятным именем.
+Переименование: x → userAge.
+Упрощение условий: заменить if (a == true) на if (a).
+Удаление дублирования: одинаковый код в нескольких местах → вынести в функцию.
+Пример (до и после):
+// До
+double price = quantity * 10;
+if (quantity > 10) price = price * 0.9;
+if (customer.isVip()) price = price * 0.95;
+
+
+
+// После
+double calculatePrice(int quantity, Customer customer) {
+    double basePrice = quantity * 10;
+    double discount = calculateDiscount(quantity, customer);
+    return basePrice * (1 - discount);
+}
+
+### Вопрос 2 Использование в коде (Java):
+String email = "test@example.com";
+boolean isValid = email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
+## Билет 10
+### Билет 10 вопрос 2 
+пример на c#
+public async Task<string> GetUserEmailAsync(int userId)
+{
+    try
+    {
+        var user = await _dbContext.Users.FindAsync(userId);
+        return user?.Email ?? "not found";
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Ошибка при получении email");
+        throw;
+    }
+}
+
+### Вопрос 3
+paths:
+  /api/v1/projects/{id}:
+    get:
+      summary: Получить проект по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Проект не найден
+
+## Билет 12
+### Билет 12 Вопрос 1
+Observer (Наблюдатель)
+Код джава
+interface Observer { void update(String news); }
+class NewsAgency {
+    private List<Observer> observers = new ArrayList<>();
+    public void addObserver(Observer o) { observers.add(o); }
+    public void publishNews(String news) {
+        observers.forEach(o -> o.update(news));
+    }
+}
+Strategy (Стратегия)
+
+interface SortStrategy { void sort(List<Item> items); }
+class PriceSort implements SortStrategy { ... }
+class RatingSort implements SortStrategy { ... }
+class Catalog {
+    private SortStrategy strategy;
+    public void setSortStrategy(SortStrategy s) { this.strategy = s; }
+    public void display() { strategy.sort(items); ... }
+}
+
+Command (Команда)
+
+interface Command { void execute(); void undo(); }
+class LightOnCommand implements Command {
+    public void execute() { light.turnOn(); }
+    public void undo() { light.turnOff(); }
+}
+
+### Билет 12 Вопрос 2
+Переопределение для окружений:
+
+Использовать отдельные файлы: appsettings.Development.json, appsettings.Production.json.
+Или переменные окружения: DB_HOST=prod-db.
+Пример (C#):
+// appsettings.Production.json
+{
+  "ConnectionStrings": {
+    "Default": "Server=prod-db;..."
+  },
+  "ApiKeys": {
+    "PaymentService": "..." // лучше брать из Key Vault!
+  }
+}
+
+### Вопрос 3
+public class PaymentService
+{
+    public async Task<string> CreatePaymentIntent(decimal amount)
+    {
+        var options = new PaymentIntentCreateOptions { Amount = (long)(amount * 100), Currency = "usd" };
+        var service = new PaymentIntentService();
+        var intent = await service.CreateAsync(options);
+        return intent.ClientSecret; // передаётся клиенту
+    }
+
+    public void HandleWebhook(string json, string signature)
+    {
+        var stripeEvent = EventUtility.ConstructEvent(json, signature, webhookSecret);
+        if (stripeEvent.Type == Events.PaymentIntentSucceeded)
+        {
+            var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+            // Обновить заказ в БД
+        }
+    }
+}
 
 ## Билет 16
 ### Вопрос 3
