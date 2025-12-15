@@ -2113,8 +2113,711 @@ CREATE TABLE articles (
 );
 ```
 
-```
+
 [Содержание](#содержание)
 ## Билет 22
 ### Вопрос 1
+Пример в package.json (npm):
+```
+{
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
+```
+### Вопрос 2
+Пример оптимизации:
+Сайт загружал style.css при каждом визите. После добавления:
+```
+Cache-Control: public, max-age=31536000, immutable
+```
+...и переименования файла в style.a1b2c3.css, браузер стал загружать его только один раз — даже при обновлении страницы. Это сократило время загрузки на 300 мс и уменьшило трафик на 80%.
+Пример конфигурации (Nginx):
+```
+# Долгосрочное кэширование для ассетов
+location ~* \.(js|css|png|jpg|svg)$ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+}
+
+# Отключить кэш для HTML
+location ~* \.html$ {
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+}
+```
+### Вопрос 3
+Пример: авторизация через GitHub в веб-приложении на C# (ASP.NET Core)
+
+Регистрация приложения на GitHub Developer Settings → создаём OAuth App, указываем Homepage URL и Authorization callback URL (https://localhost:5001/signin-github).
+В коде настраиваем провайдера:
+```
+// Program.cs
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "Cookies";
+    options.DefaultChallengeScheme = "GitHub";
+})
+.AddCookie("Cookies")
+.AddGitHub("GitHub", options =>
+{
+    options.ClientId = "ваш_client_id";
+    options.ClientSecret = "ваш_client_secret";
+    options.Scope.Add("user:email"); // чтобы получить email
+});
+```
+В контроллере — перенаправление и обработка:
+```
+[HttpGet("login")]
+public IActionResult Login()
+{
+    return Challenge(new AuthenticationProperties(), "GitHub");
+}
+
+// После возврата с GitHub, ASP.NET Core автоматически:
+// - получит код,
+// - обменяет его на токен,
+// - вызовет API /user и /user/emails,
+// - создаст claims-принципала.
+```
+
+
+[Содержание](#содержание)
+## Билет 23
+### Вопрос 2
+Основное правило: всегда используйте await при вызове асинхронного метода, если вы хотите поймать исключение. Тогда try-catch работает так же, как и в синхронном коде. Например, в C#:
+```
+try
+{
+    await DataService.LoadUserDataAsync();
+}
+catch (HttpRequestException ex)
+{
+    // обработка ошибки сети
+}
+```
+...
+....
+...
+Пример правильной обработки (C#):
+```
+public async Task ProcessOrdersAsync()
+{
+    try
+    {
+        var orders = await _orderService.GetPendingOrdersAsync();
+        foreach (var order in orders)
+        {
+            try
+            {
+                await _paymentService.ProcessAsync(order);
+            }
+            catch (PaymentFailedException ex)
+            {
+                _logger.LogWarning(ex, "Payment failed for order {OrderId}", order.Id);
+                // продолжить обработку других заказов
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Critical failure in order processing");
+        throw; // пробросить наверх, если это фатальная ошибка
+    }
+}
+```
+### Вопрос 3
+Пример кода (на Python, упрощённо):
+```
+def get_similar_items(target_item, all_items, top_n=3):
+    target_tags = set(target_item['tags'])
+    scores = []
+    for item in all_items:
+        if item['id'] == target_item['id']:
+            continue
+        common = len(target_tags & set(item['tags']))
+        scores.append((item['id'], common))
+    return sorted(scores, key=lambda x: x[1], reverse=True)[:top_n]
+```
+
+
+[Содержание](#содержание)
+## Билет 24
+### Вопрос 1
+####Примеры кода:
+####Неизменяемый класс в C# (с record):
+```
+public record Person(string Name, int Age);
+// После создания: var p = new Person("Alice", 30); — изменить нельзя
+```
+####Неизменяемый класс в Java:
+```
+public final class Person {
+    private final String name;
+    private final int age;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() { return name; }
+    public int getAge() { return age; }
+    // нет сеттеров!
+}
+```
+### Вопрос 2
+Примеры кода:
+Форматирование и парсинг даты в C#
+```
+// Форматирование
+string formatted = DateTime.Now.ToString("dd.MM.yyyy");
+
+// Безопасный парсинг
+if (DateTime.TryParse("31.12.2025", out DateTime date))
+{
+    Console.WriteLine(date);
+}
+```
+Форматирование и парсинг в Java:
+```
+// Форматирование
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+String formatted = LocalDate.now().format(formatter);
+
+// Парсинг с обработкой ошибки
+try {
+    LocalDate date = LocalDate.parse("31.12.2025", formatter);
+} catch (DateTimeParseException ex) {
+    System.err.println("Неверный формат даты");
+}
+```
+
+
+[Содержание](#содержание)
+## Билет 24
+### Вопрос 3
+Пример (C#):
+Общий интерфейс (в основном приложении):
+```
+public interface IPlugin
+{
+    string Name { get; }
+    void Execute();
+}
+```
+Загрузка плагинов:
+```
+var plugins = new List<IPlugin>();
+string pluginPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins");
+
+foreach (string file in Directory.GetFiles(pluginPath, "*.dll"))
+{
+    var assembly = Assembly.LoadFrom(file);
+    foreach (Type type in assembly.GetTypes())
+    {
+        if (typeof(IPlugin).IsAssignableFrom(type) && !type.IsInterface)
+        {
+            var instance = (IPlugin)Activator.CreateInstance(type);
+            plugins.Add(instance);
+        }
+    }
+}
+
+// Запуск
+foreach (var plugin in plugins)
+{
+    Console.WriteLine($"Запуск: {plugin.Name}");
+    plugin.Execute();
+}
+```
+Плагин (в отдельной сборке):
+```
+public class HelloPlugin : IPlugin
+{
+    public string Name => "Hello Plugin";
+    public void Execute() => Console.WriteLine("Привет от плагина!");
+}   
+```
+
+
+[Содержание](#содержание)
+## Билет 25
+### Вопрос 1
+Пример рефакторинга:
+До:
+```
+public class OrderProcessor
+{
+    public void ProcessOrder(Order order)
+    {
+        // 1. Сохранить в БД
+        SaveToDatabase(order);
+        // 2. Отправить email
+        SendEmail(order.CustomerEmail, "Заказ принят");
+        // 3. Сгенерировать PDF
+        GeneratePdf(order);
+    }
+}
+```
+После (разделение по SRP):
+```
+public class OrderService
+{
+    private readonly IOrderRepository _repo;
+    private readonly IEmailService _email;
+    private readonly IPdfGenerator _pdf;
+
+    public void ProcessOrder(Order order)
+    {
+        _repo.Save(order);
+        _email.Send(order.CustomerEmail, "Заказ принят");
+        _pdf.Generate(order);
+    }
+}
+```
+### Вопрос 2
+Пример настройки Maven (pom.xml):
+```
+<profiles>
+  <profile>
+    <id>prod</id>
+    <activation><activeByDefault>false</activeByDefault></activation>
+    <properties>
+      <log.level>WARN</log.level>
+    </properties>
+  </profile>
+</profiles>
+
+<dependencies>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>2.0.7</version>
+  </dependency>
+</dependencies>
+```
+Пример Gradle (Kotlin DSL):
+```
+dependencies {
+    implementation("org.slf4j:slf4j-api:2.0.7")
+    testImplementation("junit:junit:4.13.2")
+}
+
+tasks.named<Test>("test") {
+    useJUnit()
+}
+```
+### Вопрос 3
+Пример (веб, CSS):
+```
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+}
+
+body.dark {
+  --bg: #121212;
+  --text: #ffffff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+```
+Пример (WPF, XAML):
+```
+<!-- LightTheme.xaml -->
+<ResourceDictionary>
+  <SolidColorBrush x:Key="WindowBackground" Color="White"/>
+  <SolidColorBrush x:Key="TextForeground" Color="Black"/>
+</ResourceDictionary>
+
+<!-- В коде (C#) -->
+void SwitchToLightTheme()
+{
+    var theme = new ResourceDictionary { Source = new Uri("LightTheme.xaml", UriKind.Relative) };
+    Application.Current.Resources.MergedDictionaries.Clear();
+    Application.Current.Resources.MergedDictionaries.Add(theme);
+}
+```
+
+
+
+[Содержание](#содержание)
+## Билет 26
+### Вопрос 1
+Пример (C#):
+```
+public class BankAccount
+{
+    private decimal _balance;
+
+    // Инвариант: _balance >= 0 (проверяем в начале и конце каждого метода)
+
+    public void Withdraw(decimal amount)
+    {
+        // Предусловие
+        if (amount <= 0)
+            throw new ArgumentException("Сумма должна быть положительной", nameof(amount));
+        if (amount > _balance)
+            throw new InvalidOperationException("Недостаточно средств");
+
+        var oldBalance = _balance;
+        _balance -= amount;
+
+        // Постусловие + инвариант
+        if (_balance < 0)
+            throw new InvalidOperationException("Баланс не может быть отрицательным");
+    }
+}
+```
+### Вопрос 2
+Пример безопасного хранения пароля (Java с Spring Security):
+```
+// При регистрации
+String hashedPassword = passwordEncoder.encode(rawPassword); // bcrypt по умолчанию
+userRepository.save(new User(email, hashedPassword));
+
+// При входе
+User user = userRepository.findByEmail(email);
+if (passwordEncoder.matches(rawPassword, user.getHashedPassword())) {
+    // успех
+}
+```
+### Вопрос 2
+Пример линейного графика на Chart.js (HTML/JS):
+```
+<canvas id="salesChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['Янв', 'Фев', 'Мар'],
+    datasets: [{
+      label: 'Продажи, тыс. руб.',
+      data: [12, 19, 15],
+      borderColor: 'blue'
+    }]
+  }
+});
+</script>
+```
+Пример круговой диаграммы (Chart.js):
+```
+new Chart(ctx, {
+  type: 'pie',
+  data: {
+    labels: ['Продукт A', 'Продукт B', 'Продукт C'],
+    datasets: [{
+      data: [30, 50, 20],
+      backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe']
+    }]
+  }
+});
+```
+Пример географической карты (Leaflet + OpenStreetMap):
+```
+<div id="map" style="height: 400px;"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script>
+const map = L.map('map').setView([55.75, 37.62], 10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.marker([55.75, 37.62]).addTo(map).bindPopup('Москва');
+</script>
+```
+
+
+
+[Содержание](#содержание)
+## Билет 27
+### Вопрос 2
+Пример (отправка push через FCM в C#):
+```
+var message = new Message()
+{
+    Token = userDeviceToken,
+    Notification = new Notification
+    {
+        Title = "Новый заказ",
+        Body = "Ваш заказ №123 принят"
+    }
+};
+
+await FirebaseMessaging.DefaultInstance.SendAsync(message);
+```
+Пример (отправка email через SendGrid в Java):
+```
+Email from = new Email("noreply@myapp.com");
+Email to = new Email(user.getEmail());
+Content content = new Content("text/plain", "Ваш заказ обработан");
+Mail mail = new Mail(from, "Статус заказа", to, content);
+SendGrid sg = new SendGrid("API_KEY");
+Request request = new Request();
+request.setMethod(Method.POST);
+request.setEndpoint("mail/send");
+request.setBody(mail.build());
+sg.api(request);
+```
+### Вопрос3
+Пример экспорта в CSV (C# + ASP.NET Core):
+```
+[HttpGet("export-csv")]
+public IActionResult ExportCsv()
+{
+    var records = _db.Orders.Select(o => new { o.Id, o.Total }).ToList();
+    using var writer = new StringWriter();
+    using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+    csv.WriteRecords(records);
+    
+    return File(Encoding.UTF8.GetBytes(writer.ToString()), 
+                "text/csv", 
+                "orders.csv");
+}
+```
+Пример экспорта в PDF (Java + iText):
+```
+@GetMapping("/export-pdf")
+public void exportPdf(HttpServletResponse response) throws IOException {
+    response.setContentType("application/pdf");
+    response.setHeader("Content-Disposition", "attachment; filename=report.pdf");
+
+    PdfWriter writer = new PdfWriter(response.getOutputStream());
+    PdfDocument pdf = new PdfDocument(writer);
+    Document document = new Document(pdf);
+    document.add(new Paragraph("Отчёт по продажам"));
+    document.close();
+}
+```
+Пример экспорта в Excel (C# + EPPlus):
+```
+using var package = new ExcelPackage();
+var worksheet = package.Workbook.Worksheets.Add("Orders");
+worksheet.Cells["A1"].Value = "ID";
+worksheet.Cells["B1"].Value = "Total";
+// ... заполнение данных
+return File(package.GetAsByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx");
+```
+
+
+
+[Содержание](#содержание)
+## Билет 28
+### Вопрос 2
+Пример (Elasticsearch):
+
+1.Индексация документа:
+```
+POST /products/_doc
+{
+  "name": "Беспроводная мышь Logitech",
+  "description": "Удобная мышь для работы и игр"
+}
+```
+2.Поиск:
+```
+GET /products/_search
+{
+  "query": {
+    "match": {
+      "name": "беспроводная мышь"
+    }
+  }
+}
+```
+Elasticsearch вернёт результаты, отсортированные по релевантности, даже если пользователь введёт «мышки беспроводные».
+
+Пример на стороне приложения (C#):
+```
+var response = await elasticClient.SearchAsync<Product>(s => s
+    .Query(q => q
+        .Match(m => m
+            .Field(f => f.Name)
+            .Query(searchTerm)
+        )
+    )
+);
+```
+### Вопрос 3
+Пример мобильного эндпоинта (REST):
+```
+GET /api/v1/news?fields=id,title,preview&limit=10
+```
+Ответ:
+```
+{
+  "data": [
+    {
+      "id": 101,
+      "title": "Новость дня",
+      "preview": "Краткое содержание..."
+    }
+  ],
+  "meta": {
+    "next_cursor": "abc123"
+  }
+}
+```
+Пример на стороне клиента (Android, Kotlin):
+```
+// Использование Retrofit + OkHttp с автоматическим кэшированием
+val okHttpClient = OkHttpClient.Builder()
+    .cache(Cache(context.cacheDir, 10 * 1024 * 1024)) // 10 МБ кэша
+    .build()
+
+val retrofit = Retrofit.Builder()
+    .baseUrl("https://api.myapp.com/")
+    .client(okHttpClient)
+    .addConverterFactory(GsonConverterFactory.create())
+    .build()
+```
+
+
+
+[Содержание](#содержание)
+## Билет 29
+### Вопрос 1
+Примеры:
+Сценарий 1: Ожидаемая ошибка (логин)
+```
+// Лучше вернуть Result, а не бросать исключение
+if (!userService.ValidateCredentials(login, password))
+    return BadRequest("Invalid credentials");
+```
+Сценарий 2: Неожиданная ошибка (БД недоступна)
+```
+try
+{
+    var user = await _db.Users.FindAsync(id);
+}
+catch (SqlException ex)
+{
+    _logger.LogError(ex, "Database unreachable");
+    throw new ServiceUnavailableException("Try again later", ex);
+}
+```
+Сценарий 3: Правильный проброс
+```
+try
+{
+    // ...
+}
+catch (Exception)
+{
+    _logger.LogWarning("Partial failure");
+    throw; // сохраняет стек, а не throw ex;
+}
+```
+### Вопрос 2
+Пример реализации кэша с TTL на C# (встроенный MemoryCache):
+```
+public class ProductService
+{
+    private readonly IMemoryCache _cache;
+    private readonly IDbService _db;
+
+    public ProductService(IMemoryCache cache, IDbService db)
+    {
+        _cache = cache;
+        _db = db;
+    }
+
+    public async Task<Product> GetProductAsync(int id)
+    {
+        // Попытка получить из кэша
+        if (_cache.TryGetValue($"product_{id}", out Product product))
+            return product;
+
+        // Иначе — из БД
+        product = await _db.GetProductByIdAsync(id);
+        
+        // Сохранить в кэш на 10 минут
+        _cache.Set($"product_{id}", product, TimeSpan.FromMinutes(10));
+        return product;
+    }
+}
+```
+Пример на Java с Caffeine (LRU + TTL):
+```
+Cache<Integer, Product> cache = Caffeine.newBuilder()
+    .maximumSize(1000)          // макс. 1000 элементов
+    .expireAfterWrite(10, TimeUnit.MINUTES)
+    .build();
+
+public Product getProduct(int id) {
+    return cache.get(id, this::loadFromDatabase);
+}
+```
+### Вопрос 3
+Пример (C# + AutoUpdater.NET):
+
+1.На сервере размещается XML-файл:
+```
+<item>
+  <version>2.1.0</version>
+  <url>https://myapp.com/installer.exe</url>
+</item>
+```
+2.В приложении:
+```
+// При запуске
+AutoUpdater.Start("https://myapp.com/version.xml");
+// Библиотека автоматически проверит, скачает и предложит установить обновление
+```
+Пример (Android — проверка версии):
+```
+// Запрос к API
+val response = apiService.getLatestVersion()
+if (Version.compare(response.latest, BuildConfig.VERSION_NAME) > 0) {
+    // Показать диалог "Доступна новая версия"
+    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.myapp")))
+}
+```
+
+
+
+[Содержание](#содержание)
+## Билет 30
+### Вопрос 1
+Пример (C# — сериализация с атрибутами):
+```
+public class User
+{
+    [JsonProperty("user_id")]
+    public int Id { get; set; }
+
+    [JsonIgnore]
+    public string Password { get; set; }
+}
+// Библиотека Json.NET читает атрибуты и формирует JSON автоматически.
+```
+Пример (Java — валидация через аннотации):
+```
+public class User {
+    @NotBlank
+    @Email
+    private String email;
+    
+    @Min(18)
+    private int age;
+}
+// Hibernate Validator проверяет объект при вызове validator.validate(user).
+```
+### Вопрос 2
+Пример интеграции (Java + Spring Boot + OpenTelemetry):
+
+1.Добавить зависимости:
+```
+<dependency>
+  <groupId>io.opentelemetry.instrumentation</groupId>
+  <artifactId>opentelemetry-spring-boot-starter</artifactId>
+</dependency>
+```
+2.Настроить экспорт в Jaeger:
+```
+otel.traces.exporter: jaeger
+otel.exporter.jaeger.endpoint: http://jaeger:14250
 ```
