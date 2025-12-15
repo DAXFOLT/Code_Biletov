@@ -1273,14 +1273,19 @@ class DeadlockExample
 ### Билет 8 вопрос 2
 Примеры форматов:
 Текст — просто строка.
+
 CSV — таблица: имя,возраст\nАлиса,25.
+
 JSON — структурированные данные: {"name": "Алиса", "age": 25}.
+
 XML — разметка: <user><name>Алиса</name></user>.
 
 Пример на Java (чтение JSON):
+```
 // Используем библиотеку Jackson
 ObjectMapper mapper = new ObjectMapper();
 User user = mapper.readValue(new File("user.json"), User.class);
+```
 
 ### Вопрос 3
 Интеграция внешнего API:
@@ -1291,12 +1296,13 @@ User user = mapper.readValue(new File("user.json"), User.class);
 Обработать ответ (обычно в JSON).
 Пример: интеграция Twilio для SMS (на Java):
 Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+```
 Message message = Message.creator(
     new PhoneNumber("+1234567890"),
     new PhoneNumber("+1987654321"),
     "Привет из вашего приложения!"
 ).create();
-
+```
 ## Билет 9
 ### БИЛЕТ 9 ВОПРОС 1
 Основные техники:
