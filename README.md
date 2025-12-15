@@ -2112,3 +2112,9 @@ CREATE TABLE articles (
     status VARCHAR(20) -- 'draft' или 'published'
 );
 ```
+
+```
+[Содержание](#содержание)
+## Билет 22
+### Вопрос 1
+```
