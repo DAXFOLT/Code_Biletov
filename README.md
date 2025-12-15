@@ -1307,26 +1307,32 @@ Message message = Message.creator(
 Удаление дублирования: одинаковый код в нескольких местах → вынести в функцию.
 Пример (до и после):
 // До
+```
 double price = quantity * 10;
 if (quantity > 10) price = price * 0.9;
 if (customer.isVip()) price = price * 0.95;
+```
 
-
-
+```
 // После
 double calculatePrice(int quantity, Customer customer) {
     double basePrice = quantity * 10;
     double discount = calculateDiscount(quantity, customer);
     return basePrice * (1 - discount);
 }
+```
 
 ### Вопрос 2 Использование в коде (Java):
+```
 String email = "test@example.com";
 boolean isValid = email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+```
 
 ## Билет 10
 ### Билет 10 вопрос 2 
 пример на c#
+
+```
 public async Task<string> GetUserEmailAsync(int userId)
 {
     try
@@ -1340,8 +1346,10 @@ public async Task<string> GetUserEmailAsync(int userId)
         throw;
     }
 }
+```
 
 ### Вопрос 3
+```
 paths:
   /api/v1/projects/{id}:
     get:
@@ -1361,11 +1369,13 @@ paths:
                 $ref: '#/components/schemas/Project'
         '404':
           description: Проект не найден
+```
 
 ## Билет 12
 ### Билет 12 Вопрос 1
 Observer (Наблюдатель)
 Код джава
+```
 interface Observer { void update(String news); }
 class NewsAgency {
     private List<Observer> observers = new ArrayList<>();
@@ -1392,6 +1402,7 @@ class LightOnCommand implements Command {
     public void execute() { light.turnOn(); }
     public void undo() { light.turnOff(); }
 }
+```
 
 ### Билет 12 Вопрос 2
 Переопределение для окружений:
@@ -1399,6 +1410,7 @@ class LightOnCommand implements Command {
 Использовать отдельные файлы: appsettings.Development.json, appsettings.Production.json.
 Или переменные окружения: DB_HOST=prod-db.
 Пример (C#):
+```
 // appsettings.Production.json
 {
   "ConnectionStrings": {
@@ -1408,8 +1420,9 @@ class LightOnCommand implements Command {
     "PaymentService": "..." // лучше брать из Key Vault!
   }
 }
-
+```
 ### Вопрос 3
+```
 public class PaymentService
 {
     public async Task<string> CreatePaymentIntent(decimal amount)
@@ -1430,7 +1443,140 @@ public class PaymentService
         }
     }
 }
+```
 
+## Билет 13 
+### Вопрос 1
+Когда что использовать?
+
+Нужен быстрый поиск по индексу → ArrayList.
+Часто вставляете в начало/середину → LinkedList.
+Нужен уникальный набор без порядка → HashSet.
+Нужны уникальные элементы в сортированном виде → TreeSet.
+Нужны уникальные элементы в порядке добавления → LinkedHashSet.
+Пример на Java:
+```
+List<String> tasks = new ArrayList<>();
+tasks.add("Купить хлеб");
+tasks.add("Сделать домашку");
+
+Set<String> uniqueTags = new HashSet<>();
+uniqueTags.add("urgent");
+uniqueTags.add("urgent"); // не добавится второй раз
+
+Map<Integer, String> userIdToName = new HashMap<>();
+userIdToName.put(1, "Алиса");
+```
+### Вопрос 2 
+Зачем нужно?
+
+Для фреймворков: сериализация (JSON → объект), ORM (Entity Framework), dependency injection.
+Для тестовых фреймворков (JUnit).
+Для плагинов и динамической загрузки кода.
+Пример на Java:
+```
+Class<?> clazz = Class.forName("com.example.User");
+Object obj = clazz.getDeclaredConstructor().newInstance();
+
+Method method = clazz.getMethod("getName");
+String name = (String) method.invoke(obj); // вызов метода
+```
+
+### Вопрос 3
+Пример CRUD (Spring Boot):
+
+Model: Product (сущность JPA).
+Controller:
+@GetMapping("/products")
+```
+public String list(Model model) {
+    model.addAttribute("products", productService.findAll());
+    return "products/list"; // имя шаблона View
+}
+```
+
+## Билет 14 
+### Вопрос 2
+JSON — лёгкий текстовый формат:
+```
+{ "name": "Алиса", "age": 25, "active": true }
+```
+XML — более многословный, с тегами:
+```
+<user>
+  <name>Алиса</name>
+  <age>25</age>
+</user>
+```
+### Вопрос 3
+Пример (WPF + C#):
+
+ViewModel:
+```
+public class MainViewModel : INotifyPropertyChanged
+{
+    private string _message = "Привет!";
+    public string Message { 
+        get => _message; 
+        set { _message = value; OnPropertyChanged(); } 
+    }
+}
+```
+View (XAML):
+<TextBlock Text="{Binding Message}" />
+Пример на C# (JSON):
+```
+var user = new { Name = "Алиса", Age = 25 };
+string json = JsonSerializer.Serialize(user);
+var restored = JsonSerializer.Deserialize<User>(json);
+```
+## Билет 15 
+### Вопрос 2
+Пример на C#:
+```
+int retryCount = 0;
+while (retryCount < 3)
+{
+    try
+    {
+        var response = await httpClient.GetAsync(url);
+        return response;
+    }
+    catch (HttpRequestException)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, retryCount)));
+        retryCount++;
+    }
+}
+```
+
+### Вопрос 3
+Пример To-Do на React:
+```
+function TodoApp() {
+  const [tasks, setTasks] = useState([]);
+  const [input, setInput] = useState('');
+
+  const addTask = () => {
+    if (input.trim()) {
+      setTasks([...tasks, { id: Date.now(), text: input, done: false }]);
+      setInput('');
+    }
+  };
+
+  return (
+    <div>
+      <input value={input} onChange={e => setInput(e.target.value)} />
+      <button onClick={addTask}>Добавить</button>
+      <ul>
+        {tasks.map(task => (
+          <li key={task.id}>{task.text}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
 ## Билет 16
 ### Вопрос 3
 #### 1. index.php (Точка входа):
